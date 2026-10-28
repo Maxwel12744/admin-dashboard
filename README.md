@@ -73,28 +73,50 @@ There is no JavaScript build step. The CDN assets mean the browser needs interne
 
 ## Project structure
 
-```
-project_hub/
+admin-dashboard/
+├── core/
+│ ├── **pycache**/
+│ ├── **init**.py
+│ ├── asgi.py
+│ ├── settings.py
+│ ├── urls.py
+│ └── wsgi.py
+├── dashboard/
+│ ├── migrations/
+│ │ └── **init**.py
+│ ├── static/
+│ │ ├── css/
+│ │ │ └── styles.css
+│ │ ├── documents/
+│ │ ├── images/
+│ │ └── js/
+│ │ └── scripts.js
+│ ├── templates/
+│ │ └── projects/
+│ │ ├── \_pager.html
+│ │ ├── dashboard.html
+│ │ ├── project_detail.html
+│ │ ├── reports.html
+│ │ ├── search.html
+│ │ ├── settings.html
+│ │ └── task_list.html
+│ ├── **init**.py
+│ ├── admin.py
+│ ├── apps.py
+│ ├── models.py
+│ ├── tests.py
+│ └── views.py
+├── venv/
+├── .env
+├── .env.example
+├── .gitignore
+├── db.sqlite3
+├── LICENSE
 ├── manage.py
-├── config/                      # Django project settings
-│   ├── settings.py
-│   └── urls.py
-├── projects/                    # The dashboard app
-│   ├── models.py                # Project, Task, Notification
-│   ├── views.py                 # Dashboard, CRUD, reports, search
-│   ├── forms.py                 # Styled model forms
-│   ├── urls.py                  # App routes
-│   ├── admin.py                 # Django admin configuration
-│   ├── context_processors.py    # Notification badge data for every page
-│   └── management/commands/
-│       └── seed_demo.py         # Optional demo data
-└── templates/
-    ├── base.html                # Sidebar, top bar, theme toggle
-    ├── form.html                # Shared create/edit form
-    ├── confirm_delete.html
-    ├── registration/login.html
-    └── projects/                # Dashboard, lists, detail, reports, settings, search
-```
+├── README.md
+└── requirements.txt # Dashboard, lists, detail, reports, settings, search
+
+````
 
 ## Getting started
 
@@ -126,7 +148,7 @@ python manage.py createsuperuser
 
 # 6. Start the development server
 python manage.py runserver
-```
+````
 
 Open <http://127.0.0.1:8000/> and sign in with the account you just created.
 
