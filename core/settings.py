@@ -74,10 +74,15 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "dashboard_db",       # The database you just created
+        "USER": "root",      # Usually 'root'
+        "PASSWORD": "Maxwel@202612744",  # The password you set for the database user
+        "HOST": "localhost",
+        "PORT": "3306",
     }
 }
 
