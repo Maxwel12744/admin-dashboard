@@ -9,7 +9,10 @@ https://docs.djangoproject.com/en/6.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
+import os
+from dotenv import load_dotenv
 
+load_dotenv()  # This loads the variables from your .env file
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,10 +23,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-fhg4*3)yl(-kf-=&!fz6+!aa1@1h$jolvw3yx7bo^c@ug(gr93'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -80,7 +83,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "dashboard_db",       # The database you just created
         "USER": "root",      # Usually 'root'
-        "PASSWORD": "Maxwel@202612744",  # The password you set for the database user
+        "PASSWORD": os.environ.get("DB_PASSWORD"),  # Fetched safely from .env
         "HOST": "localhost",
         "PORT": "3306",
     }
