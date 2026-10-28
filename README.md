@@ -1,8 +1,8 @@
 # Project Hub: Admin Dashboard
 
-A centralised dashboard for managing all of your projects and their tasks, built with Django. It gives you one place to see what's in progress, what's overdue, and how your team is doing, with light and dark themes, charts, search, and notifications.
+A centralised dashboard for managing all of my projects and their tasks, built with Django. It gives you one place to see what's in progress, what's overdue, and how your team is doing, with light and dark themes, charts, search, and notifications.
 
-> Replace this line with a screenshot: `![Dashboard overview](docs/overview.png)`
+![Dashboard Overview](dashboard/static/images/overview.png)
 
 ---
 
@@ -61,13 +61,13 @@ A centralised dashboard for managing all of your projects and their tasks, built
 
 ## Tech stack
 
-| Layer    | Choice                                                      |
-| -------- | ----------------------------------------------------------- |
-| Backend  | Python 3, Django 5.2 or newer (developed against 6.1)       |
-| Database | SQLite by default, with a path to PostgreSQL for production |
-| Styling  | Tailwind CSS via CDN, Inter font via Google Fonts           |
-| Charts   | Chart.js via CDN                                            |
-| Auth     | Django's built-in authentication                            |
+| Layer    | Choice                                                |
+| -------- | ----------------------------------------------------- |
+| Backend  | Python 3, Django 5.2 or newer (developed against 6.1) |
+| Database | MySQL, with a path to PostgreSQL for production       |
+| Styling  | styles.css, Inter font via Google Fonts               |
+| Charts   | Chart.js via CDN                                      |
+| Auth     | Django's built-in authentication                      |
 
 There is no JavaScript build step. The CDN assets mean the browser needs internet access.
 
@@ -130,7 +130,7 @@ admin-dashboard/
 
 ```bash
 # 1. Get the code and enter the folder
-cd project_hub
+cd dashboard-admin
 
 # 2. Create and activate a virtual environment
 python -m venv venv
