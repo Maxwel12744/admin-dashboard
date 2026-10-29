@@ -18,5 +18,8 @@ from django.contrib import admin
 from django.urls import path
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # Built-in Django Admin panel
+    path("admin/", admin.site.urls),
+    # Route all root traffic (and /dashboard/ routes) to our dashboard app
+    path("", include("dashboard.urls")),
 ]
