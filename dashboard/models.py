@@ -1,10 +1,15 @@
-from django.db import models
-from django.conf import settings
-
-
-# Create your models here.
 from django.conf import settings
 from django.db import models
+from django.db.models import Count, Q
+from django.utils import timezone
+
+
+CATEGORIES = (
+    ("frontend", "Frontend"),
+    ("backend", "Backend"),
+    ("mobile", "Mobile"),
+    ("devops", "DevOps"),
+)
 
 
 class Project(models.Model):
@@ -13,33 +18,37 @@ class Project(models.Model):
   Acts as the parent container for tasks, milestones, and discussions.
   """
 
-  # Predefined status choices to restrict what values can be saved
-  STATUS_CHOICES = [
-      ("planning", "Planning"),
-      ("in_progress", "In Progress"),
-      ("completed", "Completed"),
-      ("on_hold", "On Hold"),
-  ]
+  class Status(models.TextChoices):
+    PLANNING = "planning", "Planning"
+    IN_PROGRESS = "in_progress", "In Progress"
+    ON_HOLD = "on_hold", "On Hold"
+    COMPLETED = "completed", "Completed"
+
+  STATUS_CHOICES = Status.choices
 
   # Basic Project Information
-  title = models.CharField(max_length=200)
+  name = models.CharField(max_length=200)
   description = models.TextField(
       blank=True, null=True
   )  # Optional details about the project
+  category = models.CharField(max_length=20, choices=CATEGORIES, default="frontend")
   status = models.CharField(
-      max_length=20, choices=STATUS_CHOICES, default="planning"
+      max_length=20, choices=Status.choices, default=Status.PLANNING
   )
 
   # Timeline fields
   start_date = models.DateField()
-  end_date = models.DateField(
+  deadline = models.DateField(
       blank=True, null=True
   )  # Optional deadline/end date
+  manual_progress = models.PositiveSmallIntegerField(default=0)
+  repo_url = models.URLField(blank=True)
+  live_url = models.URLField(blank=True)
 
   # Relationship: Tracks which user created/owns this project.
   # settings.AUTH_USER_MODEL points safely to your active User model.
   # on_delete=models.CASCADE means if the user is deleted, their projects are also deleted.
-  created_by = models.ForeignKey(
+  owner = models.ForeignKey(
       settings.AUTH_USER_MODEL,
       on_delete=models.CASCADE,
       related_name="projects",
@@ -57,9 +66,18 @@ class Project(models.Model):
     # Default sorting: Show newest projects first when querying
     ordering = ["-created_at"]
 
+  @property
+  def progress(self):
+    task_counts = self.tasks.aggregate(
+        total=Count("id"), completed=Count("id", filter=Q(is_done=True))
+    )
+    if task_counts["total"]:
+      return round(task_counts["completed"] * 100 / task_counts["total"])
+    return 100 if self.status == self.Status.COMPLETED else self.manual_progress
+
   def __str__(self):
     # Returns the project title in the Django Admin or shell
-    return self.title
+    return self.name
 
 
 class Milestone(models.Model):
@@ -81,7 +99,7 @@ class Milestone(models.Model):
     ordering = ["due_date"]
 
   def __str__(self):
-    return f"{self.project.title} - {self.title}"
+    return f"{self.project.name} - {self.title}"
 
 
 class Task(models.Model):
@@ -116,6 +134,7 @@ class Task(models.Model):
   # Task Details
   title = models.CharField(max_length=200)
   description = models.TextField(blank=True, null=True)
+  category = models.CharField(max_length=20, choices=CATEGORIES, default="frontend")
   status = models.CharField(
       max_length=20, choices=STATUS_CHOICES, default="todo"
   )
@@ -124,7 +143,7 @@ class Task(models.Model):
   )
 
   # Relationship: The team member assigned to handle this task (can be unassigned/null)
-  assigned_to = models.ForeignKey(
+  assignee = models.ForeignKey(
       settings.AUTH_USER_MODEL,
       on_delete=models.SET_NULL,
       blank=True,
@@ -135,10 +154,23 @@ class Task(models.Model):
   # Deadline and creation tracking
   due_date = models.DateTimeField()
   created_at = models.DateTimeField(auto_now_add=True)
+  is_done = models.BooleanField(default=False)
+  completed_at = models.DateTimeField(blank=True, null=True)
 
   class Meta:
     # Order tasks by upcoming due dates
     ordering = ["due_date"]
+
+  def save(self, *args, **kwargs):
+    if self.is_done:
+      self.status = "done"
+      if self.completed_at is None:
+        self.completed_at = timezone.now()
+    else:
+      if self.status == "done":
+        self.status = "todo"
+      self.completed_at = None
+    super().save(*args, **kwargs)
 
   def __str__(self):
     # Returns the title alongside its human-readable status (e.g., "Fix Bug (In Progress)")
@@ -166,14 +198,14 @@ class Comment(models.Model):
     ordering = ["created_at"]
 
   def __str__(self):
-    return f"Comment by {self.author.username} on {self.task.title}"
+      return f"Comment by {self.author.username} on {self.task.title}"
 
 
 class Notification(models.Model):
   """Alerts users when important actions happen (e.g., task assignment or deadline reminders)."""
 
   # Relationship: The user who receives the notification
-  recipient = models.ForeignKey(
+  user = models.ForeignKey(
       settings.AUTH_USER_MODEL,
       on_delete=models.CASCADE,
       related_name="notifications",
@@ -182,7 +214,7 @@ class Notification(models.Model):
   message = models.CharField(
       max_length=255
   )  # Short text describing the event
-  url = models.CharField(
+  link = models.CharField(
       max_length=500, blank=True, null=True
   )  # Optional destination link when clicked
   is_read = models.BooleanField(
@@ -198,4 +230,4 @@ class Notification(models.Model):
 
   def __str__(self):
     status_text = "Read" if self.is_read else "Unread"
-    return f"Notification for {self.recipient.username} - {status_text}"
+    return f"Notification for {self.user.username} - {status_text}"
