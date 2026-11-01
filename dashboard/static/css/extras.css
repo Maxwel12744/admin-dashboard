@@ -71,3 +71,4 @@
 .auth-card h1{font-size:var(--text-2xl);font-weight:var(--weight-semibold);margin-bottom:var(--space-xs)}
 .auth-card .auth-sub{color:var(--color-text-secondary);font-size:var(--text-sm);margin-bottom:var(--space-lg)}
 .auth-card .btn{width:100%}
+.stats-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
