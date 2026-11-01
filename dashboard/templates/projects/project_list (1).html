@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block page_title %}Search{% endblock %}
+{% block content %}
+{% if not q %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><span class="material-symbols-rounded">search</span></div>
+    <h3 class="empty-state-title">Search</h3>
+    <p class="empty-state-description">Type a project or task name in the search box at the top.</p>
+  </div>
+{% else %}
+  <div class="page-header"><div><h2>Results for “{{ q }}”</h2><p>{{ projects|length }} project{{ projects|length|pluralize }}, {{ tasks|length }} task{{ tasks|length|pluralize }}</p></div></div>
+
+  <div class="dashboard-table-container">
+    <div class="dashboard-table-header"><h3 class="dashboard-table-title">Projects</h3></div>
+    <table class="dashboard-table">
+      <thead><tr><th>Project</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for p in projects %}
+        <tr><td><a class="row-link" href="{% url 'project_detail' p.pk %}">{{ p.name }}</a></td><td><span class="status-badge info">{{ p.get_status_display }}</span></td></tr>
+        {% empty %}
+        <tr><td colspan="2"><div class="empty-state"><p class="empty-state-description">No projects found.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="dashboard-table-container">
+    <div class="dashboard-table-header"><h3 class="dashboard-table-title">Tasks</h3></div>
+    <table class="dashboard-table">
+      <thead><tr><th>Task</th><th>Project</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for t in tasks %}
+        <tr>
+          <td class="{% if t.is_done %}task-done{% endif %}">{{ t.title }}</td>
+          <td><a class="row-link" href="{% url 'project_detail' t.project_id %}">{{ t.project.name }}</a></td>
+          <td>{% if t.is_done %}<span class="status-badge success">Done</span>{% else %}<span class="status-badge warning">Open</span>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3"><div class="empty-state"><p class="empty-state-description">No tasks found.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}

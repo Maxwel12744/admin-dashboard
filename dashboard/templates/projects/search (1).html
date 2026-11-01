@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block page_title %}Overview{% endblock %}
+{% block content %}
+<!-- Stats Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Total Projects</div>
+      <div class="stat-card-icon primary"><span class="material-symbols-rounded">folder</span></div>
+    </div>
+    <div class="stat-card-value">{{ total_projects }}</div>
+    <div class="stat-card-change positive">
+      <span class="material-symbols-rounded">trending_up</span>
+      <span>+{{ new_projects }} this week</span>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Completed Tasks</div>
+      <div class="stat-card-icon success"><span class="material-symbols-rounded">check_circle</span></div>
+    </div>
+    <div class="stat-card-value">{{ completed_tasks }}</div>
+    <div class="stat-card-change {% if growth >= 0 %}positive{% else %}negative{% endif %}">
+      <span class="material-symbols-rounded">{% if growth >= 0 %}trending_up{% else %}trending_down{% endif %}</span>
+      <span>{% if growth > 0 %}+{% endif %}{{ growth }}% from last week</span>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Pending Tasks</div>
+      <div class="stat-card-icon warning"><span class="material-symbols-rounded">schedule</span></div>
+    </div>
+    <div class="stat-card-value">{{ pending_tasks }}</div>
+    <div class="stat-card-change {% if pending_delta <= 0 %}positive{% else %}negative{% endif %}">
+      <span class="material-symbols-rounded">{% if pending_delta <= 0 %}trending_down{% else %}trending_up{% endif %}</span>
+      <span>{% if pending_delta > 0 %}+{% endif %}{{ pending_delta }} from last week</span>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Team Members</div>
+      <div class="stat-card-icon info"><span class="material-symbols-rounded">group</span></div>
+    </div>
+    <div class="stat-card-value">{{ team_members }}</div>
+    <div class="stat-card-change positive">
+      <span class="material-symbols-rounded">trending_up</span>
+      <span>+{{ new_members }} new this week</span>
+    </div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="chart-grid">
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3 class="chart-card-title">Project Progress</h3>
+      <p class="chart-card-subtitle">Completion rate over the last 6 months</p>
+    </div>
+    <div class="chart-container"><canvas id="progressChart"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3 class="chart-card-title">Task Distribution</h3>
+      <p class="chart-card-subtitle">Tasks by category</p>
+    </div>
+    {% if category_data %}
+      <div class="chart-container"><canvas id="categoryChart"></canvas></div>
+    {% else %}
+      <div class="empty-state"><p class="empty-state-description">No tasks yet. Add a task to see the split by category.</p></div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Recent Projects -->
+<div class="dashboard-table-container">
+  <div class="dashboard-table-header">
+    <h3 class="dashboard-table-title">Recent Projects</h3>
+    <a href="{% url 'project_list' %}" class="btn btn-secondary">View All</a>
+  </div>
+  <table class="dashboard-table">
+    <thead>
+      <tr><th>Project</th><th>Progress</th><th>Status</th><th>Owner</th></tr>
+    </thead>
+    <tbody>
+      {% for p in recent_projects %}
+      <tr>
+        <td>
+          <div class="project-title-cell">
+            <div class="project-icon"><span class="material-symbols-rounded">folder</span></div>
+            <div class="project-info">
+              <div class="project-title-text"><a class="row-link" href="{% url 'project_detail' p.pk %}">{{ p.name }}</a></div>
+              <div class="project-meta-text">{{ p.tasks.all|length }} task{{ p.tasks.all|length|pluralize }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{% include "projects/_progress.html" with value=p.progress %}</td>
+        <td><span class="status-badge info">{{ p.get_status_display }}</span></td>
+        <td>{{ p.owner|default:"-" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">
+        <div class="empty-state">
+          <div class="empty-state-icon"><span class="material-symbols-rounded">folder</span></div>
+          <h3 class="empty-state-title">No projects yet</h3>
+          <p class="empty-state-description">Create your first project to start tracking progress.</p>
+          <a href="{% url 'project_create' %}" class="btn btn-primary">New project</a>
+        </div>
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{{ progress_labels|json_script:"progress-labels" }}
+{{ progress_data|json_script:"progress-data" }}
+{{ category_labels|json_script:"category-labels" }}
+{{ category_data|json_script:"category-data" }}
+{% endblock %}
