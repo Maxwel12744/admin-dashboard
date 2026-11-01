@@ -1,1 +1,8 @@
-<div class="progress"><span class="progress-track"><span class="progress-fill" style="width: {{ value|default:0|floatformat:0 }}%"></span></span><span class="progress-value">{{ value|default:0|floatformat:0 }}%</span></div>
+{% with val=value|default:0|floatformat:0 %}
+<div class="progress">
+    <span class="progress-track">
+        <span class="progress-fill" style="width: {{ val }}%;"></span>
+    </span>
+    <span class="progress-value">{{ val }}%</span>
+</div>
+{% endwith %}
