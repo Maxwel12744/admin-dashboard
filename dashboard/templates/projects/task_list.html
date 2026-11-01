@@ -1,38 +1,42 @@
 {% extends "base.html" %}
-{% block page_title %}{{ project.name }}{% endblock %}
+{% block page_title %}Tasks{% endblock %}
 {% block content %}
 <div class="page-header">
-  <div>
-    <h2>{{ project.name }}</h2>
-    <p><span class="status-badge info">{{ project.get_status_display }}</span> &nbsp; Owner: {{ project.owner|default:"-" }}</p>
-  </div>
-  <div class="page-actions">
-    <a href="{% url 'task_create' %}?project={{ project.pk }}" class="btn btn-primary"><span class="material-symbols-rounded">add</span>Add task</a>
-    <a href="{% url 'project_update' project.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'project_delete' project.pk %}" class="btn btn-secondary">Delete</a>
-  </div>
+  <div><h2>Tasks</h2><p>{{ paginator.count|default:0 }} matching</p></div>
+  <div class="page-actions"><a href="{% url 'task_create' %}" class="btn btn-primary"><span class="material-symbols-rounded">add</span>New task</a></div>
 </div>
 
-{% if project.description %}
-<div class="panel"><p>{{ project.description|linebreaksbr }}</p></div>
-{% endif %}
-
-<div class="panel">
-  <h3 class="panel-title">Progress</h3>
-  {% include "projects/_progress.html" with value=project.progress %}
-</div>
+<form class="filter-bar" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search tasks" aria-label="Search tasks" />
+  <select name="state" aria-label="State">
+    <option value="">Open and done</option>
+    <option value="open" {% if state == "open" %}selected{% endif %}>Open</option>
+    <option value="done" {% if state == "done" %}selected{% endif %}>Done</option>
+  </select>
+  <select name="category" aria-label="Category">
+    <option value="">All categories</option>
+    {% for value, label in categories %}<option value="{{ value }}" {% if value == category %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <select name="project" aria-label="Project">
+    <option value="">All projects</option>
+    {% for p in all_projects %}<option value="{{ p.id }}" {% if p.id|stringformat:"s" == project_id %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+  </select>
+  <label><input type="checkbox" name="mine" value="1" {% if mine %}checked{% endif %} /> Assigned to me</label>
+  <button type="submit" class="btn btn-secondary">Filter</button>
+  {% if qs %}<a href="{% url 'task_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+</form>
 
 <div class="dashboard-table-container">
-  <div class="dashboard-table-header"><h3 class="dashboard-table-title">Tasks</h3></div>
   <table class="dashboard-table">
-    <thead><tr><th>Task</th><th>Assignee</th><th>Due</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead>
+    <thead><tr><th>Task</th><th>Project</th><th>Category</th><th>Assignee</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
-      {% for t in project.tasks.all %}
+      {% for t in object_list %}
       <tr>
         <td class="{% if t.is_done %}task-done{% endif %}">{{ t.title }}</td>
+        <td><a class="row-link" href="{% url 'project_detail' t.project_id %}">{{ t.project.name }}</a></td>
+        <td><span class="status-badge muted">{{ t.get_category_display }}</span></td>
         <td>{{ t.assignee|default:"Unassigned" }}</td>
         <td>{% if t.due_date %}{{ t.due_date|date:"M d, Y" }}{% else %}-{% endif %}</td>
-        <td><span class="status-badge muted">{{ t.get_priority_display }}</span></td>
         <td>{% if t.is_done %}<span class="status-badge success">Done</span>{% else %}<span class="status-badge warning">Open</span>{% endif %}</td>
         <td><div class="table-actions">
           <form method="post" action="{% url 'task_toggle' t.pk %}" class="inline-form">
@@ -44,16 +48,16 @@
         </div></td>
       </tr>
       {% empty %}
-      <tr><td colspan="6">
+      <tr><td colspan="7">
         <div class="empty-state">
           <div class="empty-state-icon"><span class="material-symbols-rounded">checklist</span></div>
-          <h3 class="empty-state-title">No tasks yet</h3>
-          <p class="empty-state-description">Add the first task for this project.</p>
-          <a href="{% url 'task_create' %}?project={{ project.pk }}" class="btn btn-primary">Add task</a>
+          <h3 class="empty-state-title">No tasks found</h3>
+          <p class="empty-state-description">{% if qs %}Nothing matches these filters. Try clearing them.{% else %}Create a task to get started.{% endif %}</p>
         </div>
       </td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+{% include "projects/_pager.html" %}
 {% endblock %}
