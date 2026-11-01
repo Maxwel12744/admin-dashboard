@@ -15,10 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
+
 urlpatterns = [
-    # Built-in Django Admin panel
     path("admin/", admin.site.urls),
-    # Route all root traffic (and /dashboard/ routes) to our dashboard app
+    path("accounts/", include("django.contrib.auth.urls")),  # login/logout, uses registration/login.html
     path("", include("dashboard.urls")),
 ]
