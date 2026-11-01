@@ -1,32 +1,7 @@
-{% extends "base.html" %}
-{% block page_title %}Settings{% endblock %}
-{% block content %}
-<div class="chart-grid">
-  <div class="panel">
-    <h3 class="panel-title">Your profile</h3>
-    <form method="post">
-      {% csrf_token %}
-      {% for e in form.non_field_errors %}<div class="alert alert-error">{{ e }}</div>{% endfor %}
-      {% for f in form %}
-        <div class="form-group">
-          <label for="{{ f.id_for_label }}">{{ f.label }}</label>
-          {{ f }}
-          {% if f.help_text %}<div class="form-help">{{ f.help_text }}</div>{% endif %}
-          {% for e in f.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
-        </div>
-      {% endfor %}
-      <div class="form-actions"><button type="submit" class="btn btn-primary">Save changes</button></div>
-    </form>
-  </div>
-
-  <div class="dashboard-table-container">
-    <div class="dashboard-table-header"><h3 class="dashboard-table-title">Team</h3></div>
-    <table class="dashboard-table">
-      <thead><tr><th>Username</th><th>Email</th></tr></thead>
-      <tbody>
-        {% for u in team %}<tr><td>{{ u.get_username }}</td><td>{{ u.email|default:"-" }}</td></tr>{% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-{% endblock %}
+{% if is_paginated %}
+<nav class="pagination" aria-label="Pagination">
+  {% if page_obj.has_previous %}<a class="btn btn-secondary btn-sm" href="?page={{ page_obj.previous_page_number }}{% if qs %}&amp;{{ qs }}{% endif %}">Previous</a>{% endif %}
+  <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn btn-secondary btn-sm" href="?page={{ page_obj.next_page_number }}{% if qs %}&amp;{{ qs }}{% endif %}">Next</a>{% endif %}
+</nav>
+{% endif %}
