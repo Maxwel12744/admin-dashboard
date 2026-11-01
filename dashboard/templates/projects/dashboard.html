@@ -1,63 +1,119 @@
 {% extends "base.html" %}
-{% block page_title %}Tasks{% endblock %}
+{% block page_title %}Overview{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div><h2>Tasks</h2><p>{{ paginator.count|default:0 }} matching</p></div>
-  <div class="page-actions"><a href="{% url 'task_create' %}" class="btn btn-primary"><span class="material-symbols-rounded">add</span>New task</a></div>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Total Projects</div>
+      <div class="stat-card-icon primary"><span class="material-symbols-rounded">folder</span></div>
+    </div>
+    <div class="stat-card-value">{{ total_projects }}</div>
+    <div class="stat-card-change positive">
+      <span class="material-symbols-rounded">trending_up</span>
+      <span>+{{ new_projects }} this week</span>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Completed Tasks</div>
+      <div class="stat-card-icon success"><span class="material-symbols-rounded">check_circle</span></div>
+    </div>
+    <div class="stat-card-value">{{ completed_tasks }}</div>
+    <div class="stat-card-change {% if growth >= 0 %}positive{% else %}negative{% endif %}">
+      <span class="material-symbols-rounded">{% if growth >= 0 %}trending_up{% else %}trending_down{% endif %}</span>
+      <span>{% if growth > 0 %}+{% endif %}{{ growth }}% from last week</span>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Pending Tasks</div>
+      <div class="stat-card-icon warning"><span class="material-symbols-rounded">schedule</span></div>
+    </div>
+    <div class="stat-card-value">{{ pending_tasks }}</div>
+    <div class="stat-card-change {% if pending_delta <= 0 %}positive{% else %}negative{% endif %}">
+      <span class="material-symbols-rounded">{% if pending_delta <= 0 %}trending_down{% else %}trending_up{% endif %}</span>
+      <span>{% if pending_delta > 0 %}+{% endif %}{{ pending_delta }} from last week</span>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Team Members</div>
+      <div class="stat-card-icon info"><span class="material-symbols-rounded">group</span></div>
+    </div>
+    <div class="stat-card-value">{{ team_members }}</div>
+    <div class="stat-card-change positive">
+      <span class="material-symbols-rounded">trending_up</span>
+      <span>+{{ new_members }} new this week</span>
+    </div>
+  </div>
 </div>
 
-<form class="filter-bar" method="get">
-  <input type="search" name="q" value="{{ q }}" placeholder="Search tasks" aria-label="Search tasks" />
-  <select name="state" aria-label="State">
-    <option value="">Open and done</option>
-    <option value="open" {% if state == "open" %}selected{% endif %}>Open</option>
-    <option value="done" {% if state == "done" %}selected{% endif %}>Done</option>
-  </select>
-  <select name="category" aria-label="Category">
-    <option value="">All categories</option>
-    {% for value, label in categories %}<option value="{{ value }}" {% if value == category %}selected{% endif %}>{{ label }}</option>{% endfor %}
-  </select>
-  <select name="project" aria-label="Project">
-    <option value="">All projects</option>
-    {% for p in all_projects %}<option value="{{ p.id }}" {% if p.id|stringformat:"s" == project_id %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
-  </select>
-  <label><input type="checkbox" name="mine" value="1" {% if mine %}checked{% endif %} /> Assigned to me</label>
-  <button type="submit" class="btn btn-secondary">Filter</button>
-  {% if qs %}<a href="{% url 'task_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
-</form>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3 class="chart-card-title">Project Progress</h3>
+      <p class="chart-card-subtitle">Completion rate over the last 6 months</p>
+    </div>
+    <div class="chart-container"><canvas id="progressChart"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3 class="chart-card-title">Task Distribution</h3>
+      <p class="chart-card-subtitle">Tasks by category</p>
+    </div>
+    {% if category_data %}
+      <div class="chart-container"><canvas id="categoryChart"></canvas></div>
+    {% else %}
+      <div class="empty-state"><p class="empty-state-description">No tasks yet. Add a task to see the split by category.</p></div>
+    {% endif %}
+  </div>
+</div>
 
 <div class="dashboard-table-container">
+  <div class="dashboard-table-header">
+    <h3 class="dashboard-table-title">Recent Projects</h3>
+    <a href="{% url 'project_list' %}" class="btn btn-secondary">View All</a>
+  </div>
   <table class="dashboard-table">
-    <thead><tr><th>Task</th><th>Project</th><th>Category</th><th>Assignee</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead>
+    <thead>
+      <tr><th>Project</th><th>Progress</th><th>Status</th><th>Owner</th></tr>
+    </thead>
     <tbody>
-      {% for t in object_list %}
+      {% for p in recent_projects %}
       <tr>
-        <td class="{% if t.is_done %}task-done{% endif %}">{{ t.title }}</td>
-        <td><a class="row-link" href="{% url 'project_detail' t.project_id %}">{{ t.project.name }}</a></td>
-        <td><span class="status-badge muted">{{ t.get_category_display }}</span></td>
-        <td>{{ t.assignee|default:"Unassigned" }}</td>
-        <td>{% if t.due_date %}{{ t.due_date|date:"M d, Y" }}{% else %}-{% endif %}</td>
-        <td>{% if t.is_done %}<span class="status-badge success">Done</span>{% else %}<span class="status-badge warning">Open</span>{% endif %}</td>
-        <td><div class="table-actions">
-          <form method="post" action="{% url 'task_toggle' t.pk %}" class="inline-form">
-            {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}" />
-            <button type="submit" class="btn btn-secondary btn-sm">{% if t.is_done %}Reopen{% else %}Mark done{% endif %}</button>
-          </form>
-          <a href="{% url 'task_update' t.pk %}" class="btn btn-secondary btn-sm">Edit</a>
-          <a href="{% url 'task_delete' t.pk %}" class="btn btn-secondary btn-sm">Delete</a>
-        </div></td>
+        <td>
+          <div class="project-title-cell">
+            <div class="project-icon"><span class="material-symbols-rounded">folder</span></div>
+            <div class="project-info">
+              <div class="project-title-text"><a class="row-link" href="{% url 'project_detail' p.pk %}">{{ p.name }}</a></div>
+              <div class="project-meta-text">{{ p.tasks.all|length }} task{{ p.tasks.all|length|pluralize }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{% include "projects/_progress.html" with value=p.progress %}</td>
+        <td><span class="status-badge info">{{ p.get_status_display }}</span></td>
+        <td>{{ p.owner|default:"-" }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="7">
+      <tr><td colspan="4">
         <div class="empty-state">
-          <div class="empty-state-icon"><span class="material-symbols-rounded">checklist</span></div>
-          <h3 class="empty-state-title">No tasks found</h3>
-          <p class="empty-state-description">{% if qs %}Nothing matches these filters. Try clearing them.{% else %}Create a task to get started.{% endif %}</p>
+          <div class="empty-state-icon"><span class="material-symbols-rounded">folder</span></div>
+          <h3 class="empty-state-title">No projects yet</h3>
+          <p class="empty-state-description">Create your first project to start tracking progress.</p>
+          <a href="{% url 'project_create' %}" class="btn btn-primary">New project</a>
         </div>
       </td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
-{% include "projects/_pager.html" %}
+
+{{ progress_labels|json_script:"progress-labels" }}
+{{ progress_data|json_script:"progress-data" }}
+{{ category_labels|json_script:"category-labels" }}
+{{ category_data|json_script:"category-data" }}
 {% endblock %}
