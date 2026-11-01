@@ -1,45 +1,55 @@
 {% extends "base.html" %}
-{% block page_title %}Search{% endblock %}
+{% block page_title %}Projects{% endblock %}
 {% block content %}
-{% if not q %}
-  <div class="empty-state">
-    <div class="empty-state-icon"><span class="material-symbols-rounded">search</span></div>
-    <h3 class="empty-state-title">Search</h3>
-    <p class="empty-state-description">Type a project or task name in the search box at the top.</p>
-  </div>
-{% else %}
-  <div class="page-header"><div><h2>Results for “{{ q }}”</h2><p>{{ projects|length }} project{{ projects|length|pluralize }}, {{ tasks|length }} task{{ tasks|length|pluralize }}</p></div></div>
+<div class="page-header">
+  <div><h2>Projects</h2><p>{{ paginator.count|default:0 }} in total</p></div>
+  <div class="page-actions"><a href="{% url 'project_create' %}" class="btn btn-primary"><span class="material-symbols-rounded">add</span>New project</a></div>
+</div>
 
-  <div class="dashboard-table-container">
-    <div class="dashboard-table-header"><h3 class="dashboard-table-title">Projects</h3></div>
-    <table class="dashboard-table">
-      <thead><tr><th>Project</th><th>Status</th></tr></thead>
-      <tbody>
-        {% for p in projects %}
-        <tr><td><a class="row-link" href="{% url 'project_detail' p.pk %}">{{ p.name }}</a></td><td><span class="status-badge info">{{ p.get_status_display }}</span></td></tr>
-        {% empty %}
-        <tr><td colspan="2"><div class="empty-state"><p class="empty-state-description">No projects found.</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<form class="filter-bar" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search by name or description" aria-label="Search projects" />
+  <select name="status" aria-label="Status">
+    <option value="">All statuses</option>
+    {% for value, label in statuses %}<option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <button type="submit" class="btn btn-secondary">Filter</button>
+  {% if q or status %}<a href="{% url 'project_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+</form>
 
-  <div class="dashboard-table-container">
-    <div class="dashboard-table-header"><h3 class="dashboard-table-title">Tasks</h3></div>
-    <table class="dashboard-table">
-      <thead><tr><th>Task</th><th>Project</th><th>Status</th></tr></thead>
-      <tbody>
-        {% for t in tasks %}
-        <tr>
-          <td class="{% if t.is_done %}task-done{% endif %}">{{ t.title }}</td>
-          <td><a class="row-link" href="{% url 'project_detail' t.project_id %}">{{ t.project.name }}</a></td>
-          <td>{% if t.is_done %}<span class="status-badge success">Done</span>{% else %}<span class="status-badge warning">Open</span>{% endif %}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="3"><div class="empty-state"><p class="empty-state-description">No tasks found.</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-{% endif %}
+<div class="dashboard-table-container">
+  <table class="dashboard-table">
+    <thead><tr><th>Project</th><th>Progress</th><th>Status</th><th>Owner</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for p in object_list %}
+      <tr>
+        <td>
+          <div class="project-title-cell">
+            <div class="project-icon"><span class="material-symbols-rounded">folder</span></div>
+            <div class="project-info">
+              <div class="project-title-text"><a class="row-link" href="{% url 'project_detail' p.pk %}">{{ p.name }}</a></div>
+              <div class="project-meta-text">{{ p.tasks.all|length }} task{{ p.tasks.all|length|pluralize }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{% include "projects/_progress.html" with value=p.progress %}</td>
+        <td><span class="status-badge info">{{ p.get_status_display }}</span></td>
+        <td>{{ p.owner|default:"-" }}</td>
+        <td><div class="table-actions">
+          <a href="{% url 'project_update' p.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+          <a href="{% url 'project_delete' p.pk %}" class="btn btn-secondary btn-sm">Delete</a>
+        </div></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">
+        <div class="empty-state">
+          <div class="empty-state-icon"><span class="material-symbols-rounded">folder</span></div>
+          <h3 class="empty-state-title">No projects found</h3>
+          <p class="empty-state-description">{% if q or status %}Nothing matches these filters. Try clearing them.{% else %}Create a project to get started.{% endif %}</p>
+        </div>
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "projects/_pager.html" %}
 {% endblock %}
