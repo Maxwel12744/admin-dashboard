@@ -1,1 +1,252 @@
-﻿
+﻿{% load static %}<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}My Dashboard{% endblock %}</title>
+
+    <!-- Apply the saved theme before the page paints -->
+    <script>
+      try {
+        document.documentElement.setAttribute(
+          "data-theme",
+          localStorage.getItem("dashboard-theme") || "light",
+        );
+      } catch (e) {}
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Google Icons -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/extras.css' %}" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <!-- Dashboard Sidebar -->
+      <aside class="dashboard-sidebar" id="dashboardSidebar">
+        <div class="dashboard-brand">
+          <button
+            type="button"
+            class="dashboard-sidebar-toggle"
+            aria-label="Toggle sidebar"
+          >
+            <span class="material-symbols-rounded">menu</span>
+          </button>
+          <a class="logo" href="{% url 'dashboard' %}">My Dashboard</a>
+        </div>
+
+        <nav class="dashboard-nav">
+          <div class="dashboard-nav-section">
+            <a
+              href="{% url 'dashboard' %}"
+              class="dashboard-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+            >
+              <span class="nav-icon material-symbols-rounded">dashboard</span>
+              <span class="nav-label">Overview</span>
+            </a>
+            <a
+              href="{% url 'project_list' %}"
+              class="dashboard-nav-item {% if 'project' in request.resolver_match.url_name %}active{% endif %}"
+            >
+              <span class="nav-icon material-symbols-rounded">folder</span>
+              <span class="nav-label">Projects</span>
+            </a>
+            <a
+              href="{% url 'task_list' %}"
+              class="dashboard-nav-item {% if 'task' in request.resolver_match.url_name %}active{% endif %}"
+            >
+              <span class="nav-icon material-symbols-rounded">checklist</span>
+              <span class="nav-label">Tasks</span>
+            </a>
+            <a
+              href="{% url 'reports' %}"
+              class="dashboard-nav-item {% if 'report' in request.resolver_match.url_name %}active{% endif %}"
+            >
+              <span class="nav-icon material-symbols-rounded">bar_chart</span>
+              <span class="nav-label">Reports</span>
+            </a>
+            <a
+              href="{% url 'settings_page' %}"
+              class="dashboard-nav-item {% if request.resolver_match.url_name == 'settings_page' %}active{% endif %}"
+            >
+              <span class="nav-icon material-symbols-rounded">settings</span>
+              <span class="nav-label">Settings</span>
+            </a>
+          </div>
+        </nav>
+
+        <div class="sidebar-footer">
+          <a href="/admin/" class="btn btn-secondary sidebar-back-button">
+            <span class="material-symbols-rounded">admin_panel_settings</span>
+            <span class="btn-label">Admin site</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="dashboard-sidebar-overlay" id="dashboardSidebarOverlay"></div>
+
+      <!-- Dashboard Main Content -->
+      <main class="dashboard-main">
+        <header class="dashboard-header">
+          <div class="dashboard-header-content">
+            <button
+              type="button"
+              class="dashboard-sidebar-toggle"
+              aria-label="Open sidebar"
+            >
+              <span class="material-symbols-rounded">menu</span>
+            </button>
+            <h1 class="dashboard-header-title" id="dashboardTitle">
+              {% block page_title %}Overview{% endblock %}
+            </h1>
+          </div>
+
+          <!-- Search: submits to the Django search page -->
+          <form
+            class="search-container"
+            id="searchContainer"
+            action="{% url 'search' %}"
+            method="get"
+            role="search"
+          >
+            <span class="search-icon material-symbols-rounded">search</span>
+            <input
+              type="search"
+              name="q"
+              class="search-input form-input"
+              placeholder="Search projects and tasks..."
+              id="searchInput"
+            />
+            <button
+              type="button"
+              class="search-close btn"
+              id="searchClose"
+              aria-label="Close search"
+            >
+              <span class="material-symbols-rounded">close</span>
+            </button>
+          </form>
+
+          <div class="dashboard-header-actions">
+            <button
+              type="button"
+              class="mobile-search-btn btn btn-ghost"
+              id="mobileSearchBtn"
+              aria-label="Search"
+            >
+              <span class="material-symbols-rounded">search</span>
+            </button>
+
+            <!-- Notifications -->
+            <div class="user-menu" id="notifyMenu">
+              <button
+                type="button"
+                class="notification-button"
+                aria-label="Notifications"
+              >
+                <span class="material-symbols-rounded">notifications</span>
+                {% if unread_count %}
+                <div class="notification-badge">{{ unread_count }}</div>
+                {% endif %}
+              </button>
+              <div class="user-menu-dropdown notify-dropdown">
+                {% for n in recent_notifications %}
+                <a
+                  href="{% if n.link %}{{ n.link }}{% else %}#{% endif %}"
+                  class="user-menu-item notify-item {% if not n.is_read %}unread{% endif %}"
+                >
+                  <span>{{ n.message }}</span>
+                </a>
+                {% empty %}
+                <div class="notify-empty">No notifications yet.</div>
+                {% endfor %} {% if unread_count %}
+                <form
+                  method="post"
+                  action="{% url 'notifications_read' %}"
+                  class="notify-footer"
+                >
+                  {% csrf_token %}
+                  <input
+                    type="hidden"
+                    name="next"
+                    value="{{ request.get_full_path }}"
+                  />
+                  <button type="submit" class="user-menu-item">
+                    <span class="icon material-symbols-rounded">done_all</span>
+                    <span>Mark all as read</span>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- User Profile -->
+            <div class="user-menu" id="userMenu">
+              <button
+                type="button"
+                class="user-menu-trigger"
+                id="user-menu-trigger"
+                aria-label="Account menu"
+              >
+                <div class="user-avatar-small">
+                  <span class="avatar-initial"
+                    >{{ user.get_username|slice:":1" }}</span
+                  >
+                </div>
+              </button>
+              <div class="user-menu-dropdown">
+                <a href="{% url 'settings_page' %}" class="user-menu-item">
+                  <span class="icon material-symbols-rounded">person</span>
+                  <span>Profile</span>
+                </a>
+                <div class="user-menu-item theme-item">
+                  <span class="icon material-symbols-rounded">palette</span>
+                  <div class="theme-toggle" id="theme-toggle">
+                    <div class="theme-option active" data-theme="light">
+                      Light
+                    </div>
+                    <div class="theme-option" data-theme="dark">Dark</div>
+                  </div>
+                </div>
+                <form method="post" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="user-menu-item">
+                    <span class="icon material-symbols-rounded">logout</span>
+                    <span>Sign Out</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="dashboard-content">
+          <div class="dashboard-view active">
+            {% if messages %} {% for m in messages %}
+            <div class="alert alert-{{ m.tags }}">{{ m }}</div>
+            {% endfor %} {% endif %} {% block content %}{% endblock %}
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

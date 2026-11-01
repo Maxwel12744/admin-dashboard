@@ -1,1 +1,17 @@
-﻿
+﻿{% extends "base.html" %} {% block page_title %}Delete{% endblock %} {% block
+content %}
+<div class="panel panel-narrow">
+  <h2 class="panel-title">Delete this item?</h2>
+  <p>
+    You are about to delete <strong>{{ object }}</strong>. This cannot be
+    undone.
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-danger">Delete</button>
+      <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
