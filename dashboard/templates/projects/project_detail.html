@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block page_title %}{{ project.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2>{{ project.name }}</h2>
+    <p><span class="status-badge info">{{ project.get_status_display }}</span> &nbsp; Owner: {{ project.owner|default:"-" }}</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'task_create' %}?project={{ project.pk }}" class="btn btn-primary"><span class="material-symbols-rounded">add</span>Add task</a>
+    <a href="{% url 'project_update' project.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'project_delete' project.pk %}" class="btn btn-secondary">Delete</a>
+  </div>
+</div>
+
+{% if project.description %}
+<div class="panel"><p>{{ project.description|linebreaksbr }}</p></div>
+{% endif %}
+
+<div class="panel">
+  <h3 class="panel-title">Progress</h3>
+  {% include "projects/_progress.html" with value=project.progress %}
+</div>
+
+<div class="dashboard-table-container">
+  <div class="dashboard-table-header"><h3 class="dashboard-table-title">Tasks</h3></div>
+  <table class="dashboard-table">
+    <thead><tr><th>Task</th><th>Assignee</th><th>Due</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for t in project.tasks.all %}
+      <tr>
+        <td class="{% if t.is_done %}task-done{% endif %}">{{ t.title }}</td>
+        <td>{{ t.assignee|default:"Unassigned" }}</td>
+        <td>{% if t.due_date %}{{ t.due_date|date:"M d, Y" }}{% else %}-{% endif %}</td>
+        <td><span class="status-badge muted">{{ t.get_priority_display }}</span></td>
+        <td>{% if t.is_done %}<span class="status-badge success">Done</span>{% else %}<span class="status-badge warning">Open</span>{% endif %}</td>
+        <td><div class="table-actions">
+          <form method="post" action="{% url 'task_toggle' t.pk %}" class="inline-form">
+            {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}" />
+            <button type="submit" class="btn btn-secondary btn-sm">{% if t.is_done %}Reopen{% else %}Mark done{% endif %}</button>
+          </form>
+          <a href="{% url 'task_update' t.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+          <a href="{% url 'task_delete' t.pk %}" class="btn btn-secondary btn-sm">Delete</a>
+        </div></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6">
+        <div class="empty-state">
+          <div class="empty-state-icon"><span class="material-symbols-rounded">checklist</span></div>
+          <h3 class="empty-state-title">No tasks yet</h3>
+          <p class="empty-state-description">Add the first task for this project.</p>
+          <a href="{% url 'task_create' %}?project={{ project.pk }}" class="btn btn-primary">Add task</a>
+        </div>
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
