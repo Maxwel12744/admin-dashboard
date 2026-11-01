@@ -1,19 +1,18 @@
-﻿{% extends "base.html" %} {% block page_title %}{{ title }}{% endblock %} {%
-block content %}
+﻿{% extends "base.html" %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
 <div class="panel panel-narrow">
   <h2 class="panel-title">{{ title }}</h2>
   <form method="post">
-    {% csrf_token %} {% for e in form.non_field_errors %}
-    <div class="alert alert-error">{{ e }}</div>
-    {% endfor %} {% for f in form %}
-    <div class="form-group">
-      <label for="{{ f.id_for_label }}">{{ f.label }}</label>
-      {{ f }} {% if f.help_text %}
-      <div class="form-help">{{ f.help_text }}</div>
-      {% endif %} {% for e in f.errors %}
-      <div class="form-error">{{ e }}</div>
-      {% endfor %}
-    </div>
+    {% csrf_token %}
+    {% for e in form.non_field_errors %}<div class="alert alert-error">{{ e }}</div>{% endfor %}
+    {% for f in form %}
+      <div class="form-group">
+        <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+        {{ f }}
+        {% if f.help_text %}<div class="form-help">{{ f.help_text }}</div>{% endif %}
+        {% for e in f.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+      </div>
     {% endfor %}
     <div class="form-actions">
       <button type="submit" class="btn btn-primary">Save</button>
