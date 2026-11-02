@@ -32,19 +32,23 @@
     <tbody>
       {% for t in object_list %}
       <tr>
-        <td class="{% if t.is_done %}task-done{% endif %}">{{ t.title }}</td>
+        <td class="{% if t.is_done %}task-done{% endif %}"><a class="row-link" href="{% url 'task_detail' t.pk %}">{{ t.title }}</a></td>
         <td><a class="row-link" href="{% url 'project_detail' t.project_id %}">{{ t.project.name }}</a></td>
         <td><span class="status-badge muted">{{ t.get_category_display }}</span></td>
         <td>{{ t.assignee|default:"Unassigned" }}</td>
         <td>{% if t.due_date %}{{ t.due_date|date:"M d, Y" }}{% else %}-{% endif %}</td>
         <td>{% if t.is_done %}<span class="status-badge success">Done</span>{% else %}<span class="status-badge warning">Open</span>{% endif %}</td>
         <td><div class="table-actions">
+          {% if user.is_superuser or t.project.owner_id == user.id or t.assignee_id == user.id %}
           <form method="post" action="{% url 'task_toggle' t.pk %}" class="inline-form">
             {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}" />
             <button type="submit" class="btn btn-secondary btn-sm">{% if t.is_done %}Reopen{% else %}Mark done{% endif %}</button>
           </form>
+          {% endif %}
+          {% if user.is_superuser or t.project.owner_id == user.id %}
           <a href="{% url 'task_update' t.pk %}" class="btn btn-secondary btn-sm">Edit</a>
           <a href="{% url 'task_delete' t.pk %}" class="btn btn-secondary btn-sm">Delete</a>
+          {% endif %}
         </div></td>
       </tr>
       {% empty %}
