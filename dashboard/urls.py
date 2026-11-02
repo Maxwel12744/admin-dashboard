@@ -13,12 +13,23 @@ urlpatterns = [
     path("projects/<int:pk>/edit/", views.ProjectUpdateView.as_view(), name="project_update"),
     path("projects/<int:pk>/delete/", views.ProjectDeleteView.as_view(), name="project_delete"),
 
+    # Milestones
+    path("projects/<int:project_pk>/milestones/new/", views.MilestoneCreateView.as_view(), name="milestone_create"),
+    path("milestones/<int:pk>/edit/", views.MilestoneUpdateView.as_view(), name="milestone_update"),
+    path("milestones/<int:pk>/delete/", views.MilestoneDeleteView.as_view(), name="milestone_delete"),
+    path("milestones/<int:pk>/toggle/", views.milestone_toggle, name="milestone_toggle"),
+
     # Tasks
     path("tasks/", views.TaskListView.as_view(), name="task_list"),
     path("tasks/new/", views.TaskCreateView.as_view(), name="task_create"),
+    path("tasks/<int:pk>/", views.TaskDetailView.as_view(), name="task_detail"),
     path("tasks/<int:pk>/edit/", views.TaskUpdateView.as_view(), name="task_update"),
     path("tasks/<int:pk>/delete/", views.TaskDeleteView.as_view(), name="task_delete"),
     path("tasks/<int:pk>/toggle/", views.task_toggle, name="task_toggle"),
+
+    # Comments
+    path("tasks/<int:pk>/comment/", views.comment_add, name="comment_add"),
+    path("comments/<int:pk>/delete/", views.comment_delete, name="comment_delete"),
 
     # Reports
     path("reports/", views.reports, name="reports"),
