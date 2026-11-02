@@ -1,0 +1,20 @@
+{% extends "accounts/auth_base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block auth_content %}
+<h1>Create an account</h1>
+<p class="auth-sub">Sign up to create your own projects and tasks.</p>
+<form method="post">
+  {% csrf_token %}
+  {% for e in form.non_field_errors %}<div class="alert alert-error">{{ e }}</div>{% endfor %}
+  {% for f in form %}
+    <div class="form-group">
+      <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+      {{ f }}
+      {% if f.help_text %}<div class="form-help">{{ f.help_text|safe }}</div>{% endif %}
+      {% for e in f.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+    </div>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Sign up</button>
+</form>
+<p class="auth-links">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+{% endblock %}
