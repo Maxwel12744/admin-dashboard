@@ -35,8 +35,11 @@
         <td><span class="status-badge info">{{ p.get_status_display }}</span></td>
         <td>{{ p.owner|default:"-" }}</td>
         <td><div class="table-actions">
+          <a href="{% url 'project_detail' p.pk %}" class="btn btn-secondary btn-sm">Open</a>
+          {% if p.owner_id == user.id or user.is_superuser %}
           <a href="{% url 'project_update' p.pk %}" class="btn btn-secondary btn-sm">Edit</a>
           <a href="{% url 'project_delete' p.pk %}" class="btn btn-secondary btn-sm">Delete</a>
+          {% endif %}
         </div></td>
       </tr>
       {% empty %}
