@@ -6,11 +6,13 @@
     <h2>{{ project.name }}</h2>
     <p><span class="status-badge info">{{ project.get_status_display }}</span> &nbsp; Owner: {{ project.owner|default:"-" }}</p>
   </div>
+  {% if can_manage %}
   <div class="page-actions">
     <a href="{% url 'task_create' %}?project={{ project.pk }}" class="btn btn-primary"><span class="material-symbols-rounded">add</span>Add task</a>
     <a href="{% url 'project_update' project.pk %}" class="btn btn-secondary">Edit</a>
     <a href="{% url 'project_delete' project.pk %}" class="btn btn-secondary">Delete</a>
   </div>
+  {% endif %}
 </div>
 
 {% if project.description %}
@@ -23,24 +25,60 @@
 </div>
 
 <div class="dashboard-table-container">
+  <div class="dashboard-table-header">
+    <h3 class="dashboard-table-title">Milestones</h3>
+    {% if can_manage %}<a href="{% url 'milestone_create' project.pk %}" class="btn btn-secondary btn-sm">Add milestone</a>{% endif %}
+  </div>
+  <table class="dashboard-table">
+    <thead><tr><th>Milestone</th><th>Due</th><th>Tasks</th><th>Progress</th><th>Status</th>{% if can_manage %}<th>Actions</th>{% endif %}</tr></thead>
+    <tbody>
+      {% for m in milestones %}
+      <tr>
+        <td>{{ m.title }}</td>
+        <td>{{ m.due_date|date:"M d, Y" }}</td>
+        <td>{{ m.task_done }} / {{ m.task_total }}</td>
+        <td>{% include "projects/_progress.html" with value=m.percent %}</td>
+        <td>{% if m.is_completed %}<span class="status-badge success">Reached</span>{% else %}<span class="status-badge warning">Pending</span>{% endif %}</td>
+        {% if can_manage %}
+        <td><div class="table-actions">
+          <form method="post" action="{% url 'milestone_toggle' m.pk %}" class="inline-form">
+            {% csrf_token %}<button type="submit" class="btn btn-secondary btn-sm">{% if m.is_completed %}Reopen{% else %}Mark reached{% endif %}</button>
+          </form>
+          <a href="{% url 'milestone_update' m.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+          <a href="{% url 'milestone_delete' m.pk %}" class="btn btn-secondary btn-sm">Delete</a>
+        </div></td>
+        {% endif %}
+      </tr>
+      {% empty %}
+      <tr><td colspan="6"><div class="empty-state"><p class="empty-state-description">No milestones yet.</p></div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="dashboard-table-container">
   <div class="dashboard-table-header"><h3 class="dashboard-table-title">Tasks</h3></div>
   <table class="dashboard-table">
     <thead><tr><th>Task</th><th>Assignee</th><th>Due</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
       {% for t in project.tasks.all %}
       <tr>
-        <td class="{% if t.is_done %}task-done{% endif %}">{{ t.title }}</td>
+        <td class="{% if t.is_done %}task-done{% endif %}"><a class="row-link" href="{% url 'task_detail' t.pk %}">{{ t.title }}</a></td>
         <td>{{ t.assignee|default:"Unassigned" }}</td>
         <td>{% if t.due_date %}{{ t.due_date|date:"M d, Y" }}{% else %}-{% endif %}</td>
         <td><span class="status-badge muted">{{ t.get_priority_display }}</span></td>
         <td>{% if t.is_done %}<span class="status-badge success">Done</span>{% else %}<span class="status-badge warning">Open</span>{% endif %}</td>
         <td><div class="table-actions">
+          {% if can_manage or t.assignee_id == user.id %}
           <form method="post" action="{% url 'task_toggle' t.pk %}" class="inline-form">
             {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}" />
             <button type="submit" class="btn btn-secondary btn-sm">{% if t.is_done %}Reopen{% else %}Mark done{% endif %}</button>
           </form>
+          {% endif %}
+          {% if can_manage %}
           <a href="{% url 'task_update' t.pk %}" class="btn btn-secondary btn-sm">Edit</a>
           <a href="{% url 'task_delete' t.pk %}" class="btn btn-secondary btn-sm">Delete</a>
+          {% endif %}
         </div></td>
       </tr>
       {% empty %}
@@ -48,8 +86,8 @@
         <div class="empty-state">
           <div class="empty-state-icon"><span class="material-symbols-rounded">checklist</span></div>
           <h3 class="empty-state-title">No tasks yet</h3>
-          <p class="empty-state-description">Add the first task for this project.</p>
-          <a href="{% url 'task_create' %}?project={{ project.pk }}" class="btn btn-primary">Add task</a>
+          <p class="empty-state-description">{% if can_manage %}Add the first task for this project.{% else %}Nothing here yet.{% endif %}</p>
+          {% if can_manage %}<a href="{% url 'task_create' %}?project={{ project.pk }}" class="btn btn-primary">Add task</a>{% endif %}
         </div>
       </td></tr>
       {% endfor %}
