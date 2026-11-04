@@ -1,7 +1,7 @@
 asgiref==3.13.0
 Django==5.2.18
 PyMySQL==1.1.1
-cryptography
+cryptography==41.0.7
 python-dotenv==1.2.4
 sqlparse==0.6.0
 tzdata==2026.6
