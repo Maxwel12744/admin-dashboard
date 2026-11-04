@@ -48,7 +48,7 @@
     <table class="dashboard-table">
       <thead><tr><th>Username</th><th>Email</th></tr></thead>
       <tbody>
-        {% for u in team %}<tr><td>{{ u.get_username }}</td><td>{{ u.email|default:"-" }}</td></tr>{% endfor %}
+        {% for u in team %}<tr><td>{% include "projects/_person.html" with person=u %}</td><td>{{ u.email|default:"-" }}</td></tr>{% endfor %}
       </tbody>
     </table>
   </div>
