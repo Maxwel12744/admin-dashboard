@@ -37,6 +37,8 @@ urlpatterns = [
 
     # Settings, search, notifications
     path("settings/", views.settings_page, name="settings_page"),
+    path("settings/avatar/", views.avatar_update, name="avatar_update"),
+    path("settings/avatar/remove/", views.avatar_remove, name="avatar_remove"),
     path("search/", views.search, name="search"),
     path("notifications/read/", views.notifications_read, name="notifications_read"),
 ]
