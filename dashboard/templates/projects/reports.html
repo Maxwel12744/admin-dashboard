@@ -45,7 +45,7 @@
       <tr>
         <td>{{ t.title }}</td>
         <td><a class="row-link" href="{% url 'project_detail' t.project_id %}">{{ t.project.name }}</a></td>
-        <td>{{ t.assignee|default:"Unassigned" }}</td>
+        <td>{% include "projects/_person.html" with person=t.assignee empty="Unassigned" %}</td>
         <td><span class="status-badge error">{{ t.due_date|date:"M d, Y" }}</span></td>
       </tr>
       {% empty %}
@@ -61,7 +61,7 @@
     <thead><tr><th>Person</th><th>Open</th><th>Done</th></tr></thead>
     <tbody>
       {% for u in people %}
-      <tr><td>{{ u.get_username }}</td><td>{{ u.open_n }}</td><td>{{ u.done_n }}</td></tr>
+      <tr><td>{% include "projects/_person.html" with person=u %}</td><td>{{ u.open_n }}</td><td>{{ u.done_n }}</td></tr>
       {% empty %}
       <tr><td colspan="3"><div class="empty-state"><p class="empty-state-description">No team members yet.</p></div></td></tr>
       {% endfor %}
