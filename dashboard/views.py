@@ -123,7 +123,7 @@ def dashboard(request):
         "progress_data": rates,
         "category_labels": category_labels,
         "category_data": category_data,
-        "recent_projects": projects.prefetch_related("tasks")[:5],
+        "recent_projects": projects.select_related("owner__profile").prefetch_related("tasks")[:5],
     }
     return render(request, "projects/dashboard.html", ctx)
 
@@ -134,7 +134,7 @@ class ProjectListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        qs = visible_projects(self.request.user).select_related("owner").prefetch_related("tasks")
+        qs = visible_projects(self.request.user).select_related("owner__profile").prefetch_related("tasks")
         q = self.request.GET.get("q", "").strip()
         status = self.request.GET.get("status", "")
         if q:
@@ -157,7 +157,7 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     template_name = "projects/project_detail.html"
 
     def get_queryset(self):
-        return visible_projects(self.request.user).select_related("owner").prefetch_related("tasks__assignee")
+        return visible_projects(self.request.user).select_related("owner__profile").prefetch_related("tasks__assignee__profile")
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -290,7 +290,7 @@ class TaskListView(LoginRequiredMixin, ListView):
     paginate_by = 15
 
     def get_queryset(self):
-        qs = visible_tasks(self.request.user).select_related("project", "assignee")
+        qs = visible_tasks(self.request.user).select_related("project", "assignee__profile")
         g = self.request.GET
         if q := g.get("q", "").strip():
             qs = qs.filter(title__icontains=q)
@@ -328,12 +328,12 @@ class TaskDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "task"
 
     def get_queryset(self):
-        return visible_tasks(self.request.user).select_related("project__owner", "assignee", "milestone")
+        return visible_tasks(self.request.user).select_related("project__owner", "assignee__profile", "milestone")
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
-        ctx["comments"] = self.object.comments.select_related("author")
+        ctx["comments"] = self.object.comments.select_related("author__profile")
         ctx["comment_form"] = CommentForm()
         ctx["can_manage"] = can_manage_project(user, self.object.project)
         ctx["can_toggle"] = ctx["can_manage"] or self.object.assignee_id == user.id
@@ -453,10 +453,10 @@ def reports(request):
     tasks = visible_tasks(request.user)
     total = tasks.count()
     done = tasks.filter(is_done=True).count()
-    overdue = tasks.filter(is_done=False, due_date__lt=now).select_related("project", "assignee")
+    overdue = tasks.filter(is_done=False, due_date__lt=now).select_related("project", "assignee__profile")
     projects = list(visible_projects(request.user).prefetch_related("tasks"))
     people = [
-        u for u in User.objects.filter(is_active=True)
+        u for u in User.objects.filter(is_active=True).select_related("profile")
         .annotate(
             open_n=Count("assigned_tasks", filter=Q(assigned_tasks__is_done=False, assigned_tasks__in=tasks)),
             done_n=Count("assigned_tasks", filter=Q(assigned_tasks__is_done=True, assigned_tasks__in=tasks)),
@@ -504,7 +504,7 @@ def settings_page(request):
         return redirect("settings_page")
     return render(request, "projects/settings.html", {
         "form": form,
-        "team": User.objects.filter(is_active=True).order_by("username"),
+        "team": User.objects.filter(is_active=True).select_related("profile").order_by("username"),
     })
 
 
