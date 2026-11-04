@@ -128,7 +128,7 @@
             <div class="user-menu" id="userMenu">
               <button type="button" class="user-menu-trigger" id="user-menu-trigger" aria-label="Account menu">
                 <div class="user-avatar-small">
-                  <span class="avatar-initial">{{ user.get_username|slice:":1" }}</span>
+                  {% if avatar_url %}<img src="{{ avatar_url }}" alt="Your profile picture" />{% else %}<span class="avatar-initial">{{ user.get_username|slice:":1" }}</span>{% endif %}
                 </div>
               </button>
               <div class="user-menu-dropdown">
