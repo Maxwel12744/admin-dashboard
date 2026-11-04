@@ -15,8 +15,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
-from .forms import CommentForm, MilestoneForm, ProfileForm, ProjectForm, SignUpForm, TaskForm
-from .models import CATEGORIES, Comment, Notification, Project, Task
+from .forms import AvatarForm, CommentForm, MilestoneForm, ProfileForm, ProjectForm, SignUpForm, TaskForm
+from .models import CATEGORIES, Comment, Notification, Profile, Project, Task
 from .permissions import (
     can_manage_project, owned_milestones, owned_projects, owned_tasks,
     toggleable_tasks, visible_projects, visible_tasks,
@@ -506,6 +506,32 @@ def settings_page(request):
         "form": form,
         "team": User.objects.filter(is_active=True).order_by("username"),
     })
+
+
+@login_required
+@require_POST
+def avatar_update(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    old_name = profile.avatar.name
+    form = AvatarForm(request.POST, request.FILES, instance=profile)
+    if form.is_valid():
+        form.save()
+        if old_name and old_name != profile.avatar.name:
+            profile.avatar.storage.delete(old_name)  # remove the previous picture's file
+        messages.success(request, "Profile picture updated.")
+    else:
+        messages.error(request, form.errors["avatar"][0] if "avatar" in form.errors else "Could not upload that file.")
+    return redirect("settings_page")
+
+
+@login_required
+@require_POST
+def avatar_remove(request):
+    profile = Profile.objects.filter(user=request.user).first()
+    if profile and profile.avatar:
+        profile.avatar.delete(save=True)
+        messages.success(request, "Profile picture removed.")
+    return redirect("settings_page")
 
 
 @login_required
