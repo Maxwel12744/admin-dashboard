@@ -146,3 +146,7 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # Adding the session time to login again wjen you close the browser
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True   # login ends when the browser closes
 SESSION_COOKIE_AGE = 60 * 60 * 8         # or after 8 hours, whichever comes first
+
+#uploading the pictures and media files
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
