@@ -41,4 +41,6 @@ urlpatterns = [
     path("settings/avatar/remove/", views.avatar_remove, name="avatar_remove"),
     path("search/", views.search, name="search"),
     path("notifications/read/", views.notifications_read, name="notifications_read"),
+    path("cron/send-reminders/", views.cron_send_reminders, name="cron_send_reminders"),  
+
 ]
