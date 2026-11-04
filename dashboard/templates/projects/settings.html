@@ -2,21 +2,45 @@
 {% block page_title %}Settings{% endblock %}
 {% block content %}
 <div class="chart-grid">
-  <div class="panel">
-    <h3 class="panel-title">Your profile</h3>
-    <form method="post">
-      {% csrf_token %}
-      {% for e in form.non_field_errors %}<div class="alert alert-error">{{ e }}</div>{% endfor %}
-      {% for f in form %}
-        <div class="form-group">
-          <label for="{{ f.id_for_label }}">{{ f.label }}</label>
-          {{ f }}
-          {% if f.help_text %}<div class="form-help">{{ f.help_text }}</div>{% endif %}
-          {% for e in f.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+  <div>
+    <div class="panel">
+      <h3 class="panel-title">Profile picture</h3>
+      <div class="avatar-row">
+        <div class="avatar-large">{% if avatar_url %}<img src="{{ avatar_url }}" alt="Your profile picture" />{% else %}<span>{{ user.get_username|slice:":1" }}</span>{% endif %}</div>
+        <div>
+          <form method="post" action="{% url 'avatar_update' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp,image/gif" required />
+            <div class="form-help">PNG, JPG, WEBP or GIF, up to 2 MB.</div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-sm">Upload picture</button>
+            </div>
+          </form>
+          {% if avatar_url %}
+          <form method="post" action="{% url 'avatar_remove' %}" class="avatar-remove">
+            {% csrf_token %}<button type="submit" class="btn btn-secondary btn-sm">Remove picture</button>
+          </form>
+          {% endif %}
         </div>
-      {% endfor %}
-      <div class="form-actions"><button type="submit" class="btn btn-primary">Save changes</button></div>
-    </form>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 class="panel-title">Your profile</h3>
+      <form method="post">
+        {% csrf_token %}
+        {% for e in form.non_field_errors %}<div class="alert alert-error">{{ e }}</div>{% endfor %}
+        {% for f in form %}
+          <div class="form-group">
+            <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+            {{ f }}
+            {% if f.help_text %}<div class="form-help">{{ f.help_text }}</div>{% endif %}
+            {% for e in f.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+          </div>
+        {% endfor %}
+        <div class="form-actions"><button type="submit" class="btn btn-primary">Save changes</button></div>
+      </form>
+    </div>
   </div>
 
   <div class="dashboard-table-container">
