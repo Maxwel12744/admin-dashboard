@@ -554,3 +554,12 @@ def search(request):
 def notifications_read(request):
     request.user.notifications.filter(is_read=False).update(is_read=True)
     return redirect(_safe_next(request, reverse("dashboard")))
+
+@require_GET
+   def cron_send_reminders(request):
+       secret = settings.CRON_SECRET
+       sent = request.headers.get("Authorization", "")
+       if not secret or not hmac.compare_digest(sent, f"Bearer {secret}"):
+           return HttpResponseForbidden("Forbidden")
+       created = create_due_reminders()
+       return HttpResponse(f"{created} reminder(s) created.")
