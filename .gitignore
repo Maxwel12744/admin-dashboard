@@ -27,3 +27,6 @@ desktop.ini
 
 #Static files
 staticfiles/
+
+#Media files
+media/
