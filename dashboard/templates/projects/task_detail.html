@@ -25,7 +25,7 @@
     <div><div class="detail-label">Status</div>{% if task.is_done %}<span class="status-badge success">Done</span>{% else %}<span class="status-badge warning">{{ task.get_status_display }}</span>{% endif %}</div>
     <div><div class="detail-label">Priority</div><span class="status-badge muted">{{ task.get_priority_display }}</span></div>
     <div><div class="detail-label">Category</div><span class="status-badge muted">{{ task.get_category_display }}</span></div>
-    <div><div class="detail-label">Assignee</div>{{ task.assignee|default:"Unassigned" }}</div>
+    <div><div class="detail-label">Assignee</div>{% include "projects/_person.html" with person=task.assignee empty="Unassigned" %}</div>
     <div><div class="detail-label">Due</div>{{ task.due_date|date:"M d, Y H:i" }}</div>
     <div><div class="detail-label">Milestone</div>{{ task.milestone|default:"None" }}</div>
   </div>
@@ -37,7 +37,7 @@
   {% for c in comments %}
   <div class="comment">
     <div class="comment-head">
-      <strong>{{ c.author.get_username }}</strong>
+      {% include "projects/_person.html" with person=c.author size="md" %}
       <span class="comment-time">{{ c.created_at|timesince }} ago</span>
       {% if c.author_id == user.id or can_manage %}
       <form method="post" action="{% url 'comment_delete' c.pk %}" class="inline-form">

@@ -35,7 +35,7 @@
         <td class="{% if t.is_done %}task-done{% endif %}"><a class="row-link" href="{% url 'task_detail' t.pk %}">{{ t.title }}</a></td>
         <td><a class="row-link" href="{% url 'project_detail' t.project_id %}">{{ t.project.name }}</a></td>
         <td><span class="status-badge muted">{{ t.get_category_display }}</span></td>
-        <td>{{ t.assignee|default:"Unassigned" }}</td>
+        <td>{% include "projects/_person.html" with person=t.assignee empty="Unassigned" %}</td>
         <td>{% if t.due_date %}{{ t.due_date|date:"M d, Y" }}{% else %}-{% endif %}</td>
         <td>{% if t.is_done %}<span class="status-badge success">Done</span>{% else %}<span class="status-badge warning">Open</span>{% endif %}</td>
         <td><div class="table-actions">
