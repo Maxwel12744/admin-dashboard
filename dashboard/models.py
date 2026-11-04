@@ -231,3 +231,9 @@ class Notification(models.Model):
   def __str__(self):
     status_text = "Read" if self.is_read else "Unread"
     return f"Notification for {self.user.username} - {status_text}"
+class Profile(models.Model):
+  user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+  avatar = models.ImageField(upload_to="avatars/", blank=True)
+
+  def __str__(self):
+    return f"Profile of {self.user.username}"
