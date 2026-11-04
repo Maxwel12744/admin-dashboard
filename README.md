@@ -170,7 +170,7 @@ admin-dashboard/
 
 ```bash
 # 1. Get the code and enter the folder
-git clone <your-repository-url>
+git clone <https://github.com/Maxwel12744/admin-dashboard.git>
 cd admin-dashboard
 
 # 2. Create and activate a virtual environment
