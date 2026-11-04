@@ -556,7 +556,7 @@ def notifications_read(request):
     return redirect(_safe_next(request, reverse("dashboard")))
 
 @require_GET
-   def cron_send_reminders(request):
+def cron_send_reminders(request):
        secret = settings.CRON_SECRET
        sent = request.headers.get("Authorization", "")
        if not secret or not hmac.compare_digest(sent, f"Bearer {secret}"):
