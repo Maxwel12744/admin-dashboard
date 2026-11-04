@@ -1,4 +1,4 @@
-# Project Hub: Admin Dashboard
+t# Project Hub: Admin Dashboard
 
 A centralised dashboard for managing projects and their tasks, built with Django. It gives you one place to see what's in progress, what's overdue, and how your team is doing, with light and dark themes, charts, search, comments, milestones and notifications. Every person only sees the work they are involved in.
 
@@ -69,6 +69,7 @@ A centralised dashboard for managing projects and their tasks, built with Django
 
 - Sign up, log in, log out, and reset a forgotten password by email.
 - People see only the projects they own or have a task in. Only project owners can change them.
+- Profile pictures: upload your own photo in Settings. It shows in the top bar and next to your name on projects, tasks, comments, reports, and the team list. Anyone without a picture gets a coloured circle with their first letter.
 - Profile editing and a team list on the Settings page.
 - Login protection on every dashboard page, plus the built-in Django admin at `/admin/` for staff.
 
@@ -104,6 +105,7 @@ A centralised dashboard for managing projects and their tasks, built with Django
 | Database | MySQL, through `mysqlclient`                                   |
 | Styling  | style.css and extras.css, Inter font via Google Fonts          |
 | Icons    | Google Material Symbols                                        |
+| Images   | Pillow, for profile pictures                                   |
 | Charts   | Chart.js via CDN                                               |
 | Auth     | Django's built-in authentication, with sign-up and password reset |
 
@@ -131,7 +133,8 @@ admin-dashboard/
 │   │       └── script.js
 │   ├── templates/
 │   │   ├── accounts/               # sign-up and password-reset pages
-│   │   ├── projects/               # dashboard, lists, detail, reports, settings, search
+│   │   ├── projects/               # dashboard, lists, detail, reports, settings, search,
+│   │   │                           # and the shared _person.html (picture and name)
 │   │   ├── registration/
 │   │   │   └── login.html
 │   │   ├── base.html
@@ -153,6 +156,7 @@ admin-dashboard/
 ├── .gitignore
 ├── LICENSE
 ├── manage.py
+├── media/                          # uploaded profile pictures (created on first upload, not in Git)
 ├── README.md
 └── requirements.txt
 ```
@@ -170,7 +174,7 @@ admin-dashboard/
 
 ```bash
 # 1. Get the code and enter the folder
-git clone <https://github.com/Maxwel12744/admin-dashboard.git>
+git clone <your-repository-url>
 cd admin-dashboard
 
 # 2. Create and activate a virtual environment
@@ -199,7 +203,9 @@ python manage.py runserver
 
 Open <http://127.0.0.1:8000/> and sign in with the account you just created. New people can register at `/accounts/signup/`.
 
-If you add packages later, record them with `pip freeze > requirements.txt`.
+Profile pictures are saved in a `media/` folder, which is created the first time someone uploads one.
+
+If you add packages later, record them with `pip freeze > requirements.txt`. Make sure `Pillow` is in that file.
 
 ### Emails in development
 
@@ -237,6 +243,13 @@ Click a task's title to open its page, write a note in the comment box, and clic
 2. Assign tasks to them. They receive a notification on the bell icon and can open the task from it.
 3. Use the **Assigned to me** filter on the Tasks page to see your own work.
 
+### Adding a profile picture
+
+1. Click your avatar in the top right and choose **Profile**.
+2. In the **Profile picture** box, click **Choose File**, pick a PNG, JPG, WEBP, or GIF image of up to 2 MB, and click **Upload picture**.
+3. Your picture replaces the letter circle in the top bar and appears next to your name across the dashboard. Uploading a new one replaces the old one.
+4. Click **Remove picture** to go back to the letter circle.
+
 ### Resetting a password
 
 Click **Forgot your password?** on the login page and enter your email address. A link to choose a new password is sent to that address.
@@ -259,6 +272,7 @@ Open **Reports** and click **Export tasks to CSV** for a spreadsheet-friendly ex
 | Mark their task done or reopen it        | Yes           | Yes                    | No          | Yes       |
 | Comment on a task                        | Yes           | Yes                    | No          | Yes       |
 | Delete a comment                         | Any comment   | Their own              | No          | Yes       |
+| Change their own profile picture         | Yes           | Yes                    | Yes         | Yes       |
 
 A page the person is not allowed to see answers with "Not Found", so a project's existence is not revealed to people outside it. The Overview, Reports, Search, and CSV export only count what you can see.
 
@@ -302,7 +316,9 @@ Tasks with no assignee send their reminders to the project owner. Nobody is noti
 
 **Notification**: `user`, `message`, `link`, `is_read`, `created_at`
 
-Deleting a project deletes its tasks and milestones, and deleting a task deletes its comments. Deleting a milestone keeps its tasks. Deleting a user deletes the projects they own, and the tasks assigned to them become unassigned.
+**Profile**: `user` (one per person), `avatar` (the uploaded picture, stored in `media/avatars/`)
+
+Deleting a project deletes its tasks and milestones, and deleting a task deletes its comments. Deleting a milestone keeps its tasks. Deleting a user deletes the projects they own, and the tasks assigned to them become unassigned. It also deletes their profile record, but the picture file stays in `media/` until you remove it.
 
 ## URL reference
 
@@ -330,7 +346,9 @@ All routes require login, except the account pages (login, sign-up, and password
 | `/comments/<id>/delete/`                | `comment_delete`      | Delete a comment (POST only)             |
 | `/reports/`                             | `reports`             | Charts and overdue list                  |
 | `/reports/export/`                      | `report_export`       | CSV download                             |
-| `/settings/`                            | `settings_page`       | Profile and team                         |
+| `/settings/`                            | `settings_page`       | Profile, profile picture, and team       |
+| `/settings/avatar/`                     | `avatar_update`       | Upload a profile picture (POST only)     |
+| `/settings/avatar/remove/`              | `avatar_remove`       | Remove the profile picture (POST only)   |
 | `/search/?q=`                           | `search`              | Search projects and tasks                |
 | `/notifications/read/`                  | `notifications_read`  | Mark all read (POST only)                |
 | `/accounts/login/`, `/accounts/logout/` | `login`, `logout`     | Authentication (log out is POST only)    |
@@ -352,6 +370,8 @@ Settings are read from environment variables, with development-friendly defaults
 
 The MySQL connection details (database name, user, password, and host) are also kept in `.env`. Copy `.env.example` to `.env` and fill in the values it lists. Never commit `.env`.
 
+Profile pictures are stored in `MEDIA_ROOT` (the `media/` folder) and served from `MEDIA_URL`. In development, `core/urls.py` serves them while `DEBUG` is on.
+
 Generate a secret key with:
 
 ```bash
@@ -365,15 +385,17 @@ python -c "from django.core.management.utils import get_random_secret_key as k; 
 1. **Set environment variables** from the table above, with `DJANGO_DEBUG=0`.
 2. **Use a production MySQL database.** Create it with `utf8mb4`, keep its credentials in environment variables, and run `python manage.py migrate`.
 3. **Serve static files.** Set `STATIC_ROOT` in `core/settings.py` and run `python manage.py collectstatic`. Serve the collected folder with Nginx, or add [WhiteNoise](https://whitenoise.readthedocs.io/) to the middleware. The dashboard pages use CDN assets, but the Django admin needs its own static files.
-4. **Run a production server**, for example `pip install gunicorn` and `gunicorn core.wsgi`, behind Nginx or a platform such as Render, Railway, or Fly.io.
-5. **Set up real email.** Replace the console `EMAIL_BACKEND` with SMTP settings so password-reset links reach people.
-6. **Enable HTTPS**, then consider setting `SECURE_SSL_REDIRECT`, `SESSION_COOKIE_SECURE`, and `CSRF_COOKIE_SECURE` to `True`.
-7. **Run the checks:** `python manage.py check --deploy`.
-8. **Back up** the database regularly.
+4. **Serve uploaded pictures.** Django only serves `media/` while `DEBUG` is on. In production, point Nginx (or your host's file storage) at the `MEDIA_ROOT` folder for the `MEDIA_URL` path. Some hosts erase local files when the app restarts, so choose storage that persists.
+5. **Run a production server**, for example `pip install gunicorn` and `gunicorn core.wsgi`, behind Nginx or a platform such as Render, Railway, or Fly.io.
+6. **Set up real email.** Replace the console `EMAIL_BACKEND` with SMTP settings so password-reset links reach people.
+7. **Enable HTTPS**, then consider setting `SECURE_SSL_REDIRECT`, `SESSION_COOKIE_SECURE`, and `CSRF_COOKIE_SECURE` to `True`.
+8. **Run the checks:** `python manage.py check --deploy`.
+9. **Back up** the database and the `media/` folder regularly.
 
 ## Security notes
 
 - **Access is limited by ownership.** People see only the projects they own or have a task in, and only owners can edit or delete them. Superusers can see and change everything, so keep the number of superuser accounts small. For stricter roles, add Django Groups and permission checks to the views.
+- **Uploads are limited.** A profile picture must be a real image (checked with Pillow) of up to 2 MB, and people can only change their own. Uploaded files are kept in `media/`, outside the code and out of Git.
 - **Sign-up is open.** Anyone who can reach the site can create an account. For a private deployment, remove the `signup` route from `dashboard/account_urls.py`.
 - **Never deploy with the defaults.** Set a real secret key, turn debug off, and remove any test accounts.
 - State-changing actions (completing a task, commenting, signing out, marking notifications read) use POST requests with CSRF protection.
@@ -391,6 +413,8 @@ python -c "from django.core.management.utils import get_random_secret_key as k; 
 | `'super' object has no attribute 'dicts'` in the admin     | Your Django version is too old for your Python version (a known problem with Python 3.14). Upgrade with `pip install --upgrade "Django>=5.2.8,<5.3"`.                                     |
 | `Invalid block tag ... 'endblock'` right after saving      | A code formatter such as Prettier split a template tag over two lines. Turn off format-on-save for HTML templates and restore the file.                                                   |
 | One page shows another page's content                      | The wrong code was pasted into that template, or into an included file such as `_progress.html` or `_pager.html`. Check the page title line at the top of the file.                        |
+| `Cannot use ImageField because Pillow is not installed`    | Install it in the active environment with `pip install Pillow`.                                                                                                                           |
+| A profile picture uploads but shows as a broken image      | Check `MEDIA_URL` and `MEDIA_ROOT` in `settings.py`, and that `core/urls.py` ends with the `static(settings.MEDIA_URL, ...)` line. That line works only while `DEBUG` is on.             |
 | `no such table` or `Table ... doesn't exist`               | Run `python manage.py migrate`.                                                                                                                                                           |
 | Page looks unstyled, charts are empty                      | The browser can't reach the CDNs. Check your internet connection or ad blocker.                                                                                                           |
 | Sign out shows "method not allowed"                        | Sign out must be a POST form (the avatar menu does this). Don't link to `/accounts/logout/` directly.                                                                                     |
@@ -425,6 +449,7 @@ Please keep changes focused, and don't commit `venv/` or secrets. A suggested `.
 venv/
 __pycache__/
 staticfiles/
+media/
 .env
 ```
 
