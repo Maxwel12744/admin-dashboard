@@ -14,6 +14,11 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
+import hmac
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseForbidden
+from django.views.decorators.http import require_GET
+from .reminders import create_due_reminders
 
 from .forms import AvatarForm, CommentForm, MilestoneForm, ProfileForm, ProjectForm, SignUpForm, TaskForm
 from .models import CATEGORIES, Comment, Notification, Profile, Project, Task
