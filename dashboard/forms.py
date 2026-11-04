@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 
-from .models import Comment, Milestone, Project, Task
+from .models import Comment, Milestone, Profile, Project, Task
 from .permissions import owned_milestones, owned_projects
 
 User = get_user_model()
@@ -76,6 +76,22 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["first_name", "last_name", "email"]
+
+
+class AvatarForm(forms.ModelForm):
+    MAX_BYTES = 2 * 1024 * 1024
+
+    class Meta:
+        model = Profile
+        fields = ["avatar"]
+
+    def clean_avatar(self):
+        picture = self.cleaned_data.get("avatar")
+        if not picture:
+            raise forms.ValidationError("Choose a picture first.")
+        if picture.size > self.MAX_BYTES:
+            raise forms.ValidationError("The picture must be smaller than 2 MB.")
+        return picture
 
 
 class SignUpForm(UserCreationForm):
