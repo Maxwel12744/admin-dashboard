@@ -520,7 +520,11 @@ def avatar_update(request):
     old_name = profile.avatar.name
     form = AvatarForm(request.POST, request.FILES, instance=profile)
     if form.is_valid():
-        form.save()
+        try:
+            form.save()
+        except OSError:  # the server's disk is read-only (for example on Vercel)
+            messages.error(request, "Picture uploads are not available on this server yet.")
+            return redirect("settings_page")
         if old_name and old_name != profile.avatar.name:
             profile.avatar.storage.delete(old_name)  # remove the previous picture's file
         messages.success(request, "Profile picture updated.")
