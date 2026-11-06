@@ -41,3 +41,14 @@ class CommentForm(forms.ModelForm):
         widgets = {
             "content": forms.Textarea(attrs={"rows": 3, "placeholder": "Add a comment..."}),
         }
+
+class MilestoneForm(forms.ModelForm):
+    class Meta:
+        model = Milestone
+        fields = ['project', 'title', 'description', 'due_date', 'completed']
+        widgets = {
+            'due_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'project': forms.Select(attrs={'class': 'form-select'}),
+        }
