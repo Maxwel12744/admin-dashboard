@@ -53,7 +53,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # serves static files online
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -90,6 +89,10 @@ DB_OPTIONS = {"charset": "utf8mb4"}
 # project (e.g. certs/ca.pem) and set DB_SSL_CA=certs/ca.pem
 if os.getenv("DB_SSL_CA"):
     DB_OPTIONS["ssl"] = {"ca": str(BASE_DIR / os.getenv("DB_SSL_CA"))}
+# Hosts without a CA file (e.g. Railway): DB_SSL=True encrypts the connection
+# without checking the server certificate. Better than sending data in the clear.
+elif env_bool("DB_SSL", False):
+    DB_OPTIONS["ssl"] = {"check_hostname": False}
 
 DATABASES = {
     "default": {
@@ -125,17 +128,22 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"  # `collectstatic` gathers files here
 
+# On Vercel, `collectstatic` runs automatically at build time and the files are
+# served from Vercel's CDN, so no extra static-file package is needed.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 
 
 # --- Uploaded pictures and media files ----------------------------------
-# NOTE: Vercel has no permanent disk, so files uploaded here do not survive
-# online. Local use is fine. For online use, switch to cloud storage.
+# Locally, pictures are saved in the media/ folder. Online (Vercel has no
+# permanent disk), set CLOUDINARY_URL and they are stored in Cloudinary instead.
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+if os.getenv("CLOUDINARY_URL"):
+    STORAGES["default"] = {"BACKEND": "dashboard.storage.CloudinaryMediaStorage"}
 
 
 # --- Login and sessions -------------------------------------------------
@@ -157,7 +165,6 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "My Dashboard <noreply@localhost>")
-CRON_SECRET = os.getenv("CRON_SECRET", "")
 
 
 # --- Security (only when DEBUG is off, i.e. online) ---------------------
