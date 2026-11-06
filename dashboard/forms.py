@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Count, Q
 from django.utils import timezone
 from .models import Project
+from .models import Milestone
 
 
 CATEGORIES = (
