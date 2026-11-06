@@ -5,6 +5,7 @@ Everything that changes between your PC and the live server is read from
 environment variables: your .env file locally, Vercel's Environment Variables online.
 """
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -157,9 +158,10 @@ if _cloudinary_url.startswith("cloudinary://") and "<" not in _cloudinary_url:
 elif _cloudinary_url:
     # Wrong format: do not crash the site, and say so in the logs.
     os.environ.pop("CLOUDINARY_URL", None)
-    print("WARNING: CLOUDINARY_URL is not valid. It must look like "
-          "cloudinary://API_KEY:API_SECRET@CLOUD_NAME (no <> signs). "
-          "Profile pictures are disabled until it is fixed.")
+    # stderr, never stdout: Vercel reads this project's stdout as JSON during the build.
+    sys.stderr.write("WARNING: CLOUDINARY_URL is not valid. It must look like "
+                     "cloudinary://API_KEY:API_SECRET@CLOUD_NAME (no <> signs). "
+                     "Profile pictures are disabled until it is fixed.\n")
 
 
 # --- Login and sessions -------------------------------------------------
