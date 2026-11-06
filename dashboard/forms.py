@@ -6,7 +6,7 @@ from .models import Project
 from .models import Milestone
 from .models import Task
 from .models import Comment
-
+from django import forms
 CATEGORIES = (
     ("frontend", "Frontend"),
     ("backend", "Backend"),
