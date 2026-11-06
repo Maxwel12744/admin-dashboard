@@ -33,8 +33,8 @@ from .models import Comment, Profile
 
 class CommentForm(forms.ModelForm):
     class Meta:
-        model = Comment
-        fields = ["body"]
-        widgets = {
-            "body": forms.Textarea(attrs={"rows": 3, "placeholder": "Add a comment..."}),
-        }
+    model = Comment
+    fields = ["text"]  # Change "body" to match your model's field name (e.g., text, content, or message)
+    widgets = {
+        "text": forms.Textarea(attrs={"rows": 3, "placeholder": "Add a comment..."}),
+}
