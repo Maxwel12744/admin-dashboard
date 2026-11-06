@@ -8,6 +8,9 @@ from .models import Task
 from .models import Comment
 from django import forms
 from .models import Profile
+from django import forms
+from .models import Comment, Profile
+
 CATEGORIES = (
     ("frontend", "Frontend"),
     ("backend", "Backend"),
@@ -33,8 +36,8 @@ from .models import Comment, Profile
 
 class CommentForm(forms.ModelForm):
     class Meta:
-    model = Comment
-    fields = ["text"]  # Change "body" to match your model's field name (e.g., text, content, or message)
-    widgets = {
-        "text": forms.Textarea(attrs={"rows": 3, "placeholder": "Add a comment..."}),
-}
+        model = Comment
+        fields = ["content"]  # Replace "content" with your model's actual field name
+        widgets = {
+            "content": forms.Textarea(attrs={"rows": 3, "placeholder": "Add a comment..."}),
+        }
