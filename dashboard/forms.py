@@ -5,6 +5,7 @@ from django.utils import timezone
 from .models import Project
 from .models import Milestone
 from .models import Task
+from .models import Comment
 
 CATEGORIES = (
     ("frontend", "Frontend"),
