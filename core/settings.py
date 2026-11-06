@@ -142,13 +142,28 @@ STORAGES = {
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-if os.getenv("CLOUDINARY_URL"):
+def _clean_cloudinary_url(raw):
+    """Fix common paste mistakes: spaces, quotes, or a leading 'CLOUDINARY_URL='."""
+    value = (raw or "").strip().strip("\"'").strip()
+    if value.upper().startswith("CLOUDINARY_URL="):
+        value = value.split("=", 1)[1].strip().strip("\"'").strip()
+    return value
+
+
+_cloudinary_url = _clean_cloudinary_url(os.getenv("CLOUDINARY_URL"))
+if _cloudinary_url.startswith("cloudinary://") and "<" not in _cloudinary_url:
+    os.environ["CLOUDINARY_URL"] = _cloudinary_url  # the Cloudinary library reads this
     STORAGES["default"] = {"BACKEND": "dashboard.storage.CloudinaryMediaStorage"}
+elif _cloudinary_url:
+    # Wrong format: do not crash the site, and say so in the logs.
+    os.environ.pop("CLOUDINARY_URL", None)
+    print("WARNING: CLOUDINARY_URL is not valid. It must look like "
+          "cloudinary://API_KEY:API_SECRET@CLOUD_NAME (no <> signs). "
+          "Profile pictures are disabled until it is fixed.")
 
 
 # --- Login and sessions -------------------------------------------------
 LOGIN_URL = "login"
-DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
