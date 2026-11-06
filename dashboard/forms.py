@@ -27,3 +27,14 @@ class AvatarForm(forms.ModelForm):
             if avatar.size > 2 * 1024 * 1024:
                 raise forms.ValidationError("Image file size must not exceed 2MB.")
         return avatar
+    
+    from django import forms
+from .models import Comment, Profile
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ["body"]
+        widgets = {
+            "body": forms.Textarea(attrs={"rows": 3, "placeholder": "Add a comment..."}),
+        }
