@@ -7,6 +7,7 @@ from .models import Milestone
 from .models import Task
 from .models import Comment
 from django import forms
+from .models import Profile
 CATEGORIES = (
     ("frontend", "Frontend"),
     ("backend", "Backend"),
