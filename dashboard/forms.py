@@ -12,26 +12,7 @@ CATEGORIES = (
     ("devops", "DevOps"),
 )
 
-class Milestone(models.Model):
-  """Represents major phases, deadlines, or checkpoints within a specific project."""
 
-  # Relationship: Linked to a Project. If the project is deleted, its milestones go with it.
-  project = models.ForeignKey(
-      Project, on_delete=models.CASCADE, related_name="milestones"
-  )
-
-  title = models.CharField(max_length=200)
-  due_date = models.DateField()
-  is_completed = models.BooleanField(
-      default=False
-  )  # Tracks if the milestone is achieved
-
-  class Meta:
-    # Sort milestones chronologically by their due date
-    ordering = ["due_date"]
-
-  def __str__(self):
-    return f"{self.project.name} - {self.title}"
 
 
 class Task(models.Model):
