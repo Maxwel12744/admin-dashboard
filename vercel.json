@@ -8,6 +8,6 @@
       { "src": "/(.*)", "dest": "api/index.py" }
     ],
     "crons": [
-      { "path": "/cron/send-reminders/", "schedule": "0 6 * * *" }
+      { "path": "/cron/send-reminders/", "schedule": "0 8 * * *" }
     ]
    }
