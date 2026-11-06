@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Count, Q
 from django.utils import timezone
+from .models import Project
 
 
 CATEGORIES = (
