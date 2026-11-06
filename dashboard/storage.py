@@ -6,14 +6,19 @@ Django asks this class to save, delete and build the web address of each file.
 The name kept in your database looks like  avatars/3f9c...e1.jpg
 (the Cloudinary public id, a dot, and the image format).
 """
+import logging
 import os
 import uuid
 
 import cloudinary
+import cloudinary.exceptions
 import cloudinary.uploader
 import cloudinary.utils
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
+
+
+logger = logging.getLogger(__name__)
 
 
 @deconstructible
@@ -35,12 +40,17 @@ class CloudinaryMediaStorage(Storage):
         if folder:
             public_id = f"{folder}/{public_id}"
         content.seek(0)
-        result = cloudinary.uploader.upload(
-            content,
-            public_id=public_id,
-            resource_type="image",
-            overwrite=False,
-        )
+        try:
+            result = cloudinary.uploader.upload(
+                content,
+                public_id=public_id,
+                resource_type="image",
+                overwrite=False,
+            )
+        except (cloudinary.exceptions.Error, ValueError) as exc:
+            # OSError is what the avatar_update view already handles with a friendly message.
+            logger.error("Cloudinary upload failed: %s", exc)
+            raise OSError("Could not upload the picture to Cloudinary.") from exc
         return f"{result['public_id']}.{result['format']}"
 
     def _split(self, name):
@@ -60,7 +70,11 @@ class CloudinaryMediaStorage(Storage):
         if not name:
             return
         public_id, _ = self._split(name)
-        cloudinary.uploader.destroy(public_id, resource_type="image", invalidate=True)
+        try:
+            cloudinary.uploader.destroy(public_id, resource_type="image", invalidate=True)
+        except (cloudinary.exceptions.Error, ValueError) as exc:
+            # A leftover file in Cloudinary is harmless; never crash the page over it.
+            logger.warning("Could not delete %s from Cloudinary: %s", public_id, exc)
 
     def exists(self, name):
         # Names are random, so a clash is practically impossible. Returning False
