@@ -148,6 +148,7 @@ if os.getenv("CLOUDINARY_URL"):
 
 # --- Login and sessions -------------------------------------------------
 LOGIN_URL = "login"
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
