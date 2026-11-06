@@ -1,9 +1,8 @@
 asgiref==3.13.0
 Django==5.2.18
-Pillow>=11.0,<13.0
 PyMySQL==1.1.1
-cryptography==41.0.7
+cryptography
 python-dotenv==1.2.4
 sqlparse==0.6.0
 tzdata==2026.6
-whitenoise==6.9.0
+cloudinary>=1.41,<2
