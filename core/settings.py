@@ -42,15 +42,16 @@ CRON_SECRET = os.getenv("CRON_SECRET", "")
 
 
 # --- Apps ---------------------------------------------------------------
-INSTALLED_APPS = [
+INSTALLED_APPS = [ 
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "django.contrib.staticfiles",=
+    "django.contrib.staticfiles",
     "dashboard",
 ]
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
