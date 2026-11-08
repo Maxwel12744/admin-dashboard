@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "dashboard",
+    "cloudinary_storage",  # optional, only if you use Cloudinary for profile pictures
 ]
 
 MIDDLEWARE = [
