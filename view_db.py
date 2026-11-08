@@ -4,7 +4,7 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "admin-dashboard.settings")
 django.setup()
 
-from portfolio.models import ContactMessage
+from .models import ContactMessage
 
 messages = ContactMessage.objects.all()
 
