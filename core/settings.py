@@ -186,16 +186,17 @@ EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "My Dashboard <noreply@localhost>")
 
 
-# --- Security (only when DEBUG is off, i.e. online) ---------------------
+# --- Security & Storage (only when DEBUG is off, i.e. online) ---
 if not DEBUG:
     SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", True)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # Start at 0, then raise (e.g. 31536000) once HTTPS works everywhere.
     SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
-    # Vercel sits behind a proxy that handles HTTPS: set BEHIND_PROXY=True there,
-    # otherwise you get a redirect loop.
+    
     if env_bool("BEHIND_PROXY", False):
         SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-    STORAGES["default"] = {"BACKEND": "dashboard.storage.CloudinaryMediaStorage"}
+    # Force Cloudinary storage in production
+    STORAGES["default"] = {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"
+    }
