@@ -198,4 +198,4 @@ if not DEBUG:
     if env_bool("BEHIND_PROXY", False):
         SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-        DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+    STORAGES["default"] = {"BACKEND": "dashboard.storage.CloudinaryMediaStorage"}
