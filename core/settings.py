@@ -197,3 +197,5 @@ if not DEBUG:
     # otherwise you get a redirect loop.
     if env_bool("BEHIND_PROXY", False):
         SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+        DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
